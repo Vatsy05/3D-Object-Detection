@@ -1,4 +1,4 @@
-# 🎯 3D Object Detection — From PointNet to VoteNet
+# 🎯 3D Object Detection using Machine Learning 
 
 **3D Object Detection** is an end-to-end research project that traces the evolution of point cloud deep learning — starting from the original PointNet classifier, advancing through PointNet++ multi-scale variants with sim-to-real domain adaptation, and culminating in a **27-class VoteNet 3D object detector** for furniture and military objects in indoor scenes.
 
