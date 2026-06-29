@@ -1,5 +1,20 @@
 # 🎯 3D Object Detection using Machine Learning 
 
+
+![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)
+![PointNet](https://img.shields.io/badge/PointNet-Research-blueviolet?style=flat-square)
+![PointNet++](https://img.shields.io/badge/PointNet++-MSG-success?style=flat-square)
+![VoteNet](https://img.shields.io/badge/VoteNet-3D%20Detection-orange?style=flat-square)
+![Open3D](https://img.shields.io/badge/Open3D-Geometry-blue?style=flat-square)
+![Plotly](https://img.shields.io/badge/Plotly-Visualization-3F4F75?style=flat-square&logo=plotly&logoColor=white)
+![CUDA](https://img.shields.io/badge/CUDA-Enabled-76B900?style=flat-square&logo=nvidia&logoColor=white)
+![Kaggle](https://img.shields.io/badge/Kaggle-GPU-20BEFF?style=flat-square&logo=kaggle&logoColor=white)
+![ModelNet40](https://img.shields.io/badge/ModelNet40-Dataset-yellow?style=flat-square)
+![SUNRGBD](https://img.shields.io/badge/SUN_RGB--D-Dataset-lightgrey?style=flat-square)
+![ScanObjectNN](https://img.shields.io/badge/ScanObjectNN-Real%20World-success?style=flat-square)
+
+
 **3D Object Detection** is an end-to-end research project that traces the evolution of point cloud deep learning — starting from the original PointNet classifier, advancing through PointNet++ multi-scale variants with sim-to-real domain adaptation, and culminating in a **27-class VoteNet 3D object detector** for furniture and military objects in indoor scenes.
 
 It combines **point cloud classification**, **multi-scale feature learning**, **domain-aware fine-tuning**, and **deep Hough voting** to demonstrate a complete progression from foundational architectures to deployment-relevant 3D detection.
