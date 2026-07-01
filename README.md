@@ -217,6 +217,33 @@ flowchart TD
 > military_radio, rifle, combat_knife, hand_grenade, flashlight, magazine, wire_cutter — limited by point-cloud sampling density on objects smaller than ~15 cm
 
 ---
+## 📥 Download Trained Models
+
+Trained checkpoints are hosted on the [**v1.0 Release**](../../releases/tag/v1.0) to keep this repository lightweight.
+
+| Model | Phase | Task | Metric |
+|---|---|---|---|
+| `pointnet_v3_modelnet40_aug_regfix_best.pt` | 1-2 | ModelNet40 classification | ~87% acc |
+| `pointnetpp_ssg_modelnet40_best.pt` | 3 | ModelNet40 classification | ~90% acc |
+| `pointnetpp_msg_best.pt` | 4 | ModelNet40 classification | ~91% acc |
+| `pointnetpp_msg_multi_domain_best.pt` | 5 | Sim-to-real | — |
+| `pointnetpp_msg_scanobjectnn_best.pt` | 6 | ScanObjectNN classification | — |
+| `votenet_sunrgbd_best.pt` | 7 | SUN RGB-D detection | 57.49% mAP@0.25 |
+| **`votenet_27class_best.pt`** | **8** | **27-class detection** | **62.25% mAP@0.25** |
+
+Download individually from the Release page, or via GitHub CLI:
+
+```bash
+gh release download v1.0 --dir checkpoints/
+```
+
+Then in Python:
+
+```python
+import torch
+ckpt = torch.load('checkpoints/votenet_27class_best.pt', map_location='cuda')
+model.load_state_dict(ckpt['model_state_dict'])
+```
 
 ## 🛠️ Technology Stack
 
