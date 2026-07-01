@@ -285,25 +285,6 @@ model.load_state_dict(ckpt['model_state_dict'])
 
 ---
 
-## 📚 Documentation
-
-| File | Contents |
-|---|---|
-| `POINTNET_REPORT.md` | PointNet v1/v2/v3 implementation + ModelNet40 results |
-| `PHASE5_SIM_TO_REAL_REPORT.md` | Sim-to-real findings: domain augmentation, multi-domain, fine-tuning |
-| `PHASE8_VOTENET_27CLASS_REPORT.md` | Phase 8 methodology, per-class results, limitations |
-| `DETECTION_LITERATURE_SURVEY.md` | Background reading: VoteNet, 3DETR, GroupFree3D |
-| `LITERATURE_SURVEY.md` | Foundational papers: PointNet, PointNet++, voting methods |
-| `GUIDE_MEETING_TIMELINE.md` | Project timeline + guide feedback notes |
-
-Visual deliverables:
-- `training_curves.png`, `votenet_training_curve.png`, `finetune_training_curves.png` — training loss curves per phase
-- `msg_confusion_matrix.png`, `simtoreal_confusion_matrix.png` — per-class confusion matrices
-- `scene_crop_chair_comparison.png` — scene cropping ablation
-- `scanobjectnn_*_combined.csv` — full ScanObjectNN evaluation tables
-
----
-
 ## 🎬 Reproducing the Pipeline
 
 ### Phase 1-4 (Classification on ModelNet40)
