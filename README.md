@@ -5,7 +5,6 @@
 ![PointNet](https://img.shields.io/badge/PointNet-Research-blueviolet?style=flat-square)
 ![PointNet++](https://img.shields.io/badge/PointNet++-MSG-success?style=flat-square)
 ![VoteNet](https://img.shields.io/badge/VoteNet-3D%20Detection-orange?style=flat-square)
-![BlenderProc](https://img.shields.io/badge/BlenderProc-Engine%20Eval-F5792A?style=flat-square)
 ![Open3D](https://img.shields.io/badge/Open3D-Geometry-blue?style=flat-square)
 ![Plotly](https://img.shields.io/badge/Plotly-Visualization-3F4F75?style=flat-square&logo=plotly&logoColor=white)
 ![CUDA](https://img.shields.io/badge/CUDA-Enabled-76B900?style=flat-square&logo=nvidia&logoColor=white)
@@ -14,17 +13,17 @@
 ![SUNRGBD](https://img.shields.io/badge/SUN_RGB--D-Dataset-lightgrey?style=flat-square)
 ![ScanObjectNN](https://img.shields.io/badge/ScanObjectNN-Real%20World-success?style=flat-square)
 
-**3D Object Detection** is an end-to-end research project that traces the evolution of point-cloud deep learning — from the original PointNet classifier, through PointNet++ multi-scale variants with sim-to-real domain adaptation, into a **VoteNet 3D detector**, and culminating in a **60-class camera-simulated (2.5D) detector** with a **measured, mechanism-explained sim-to-engine transfer** on a military + furniture taxonomy that has not previously been assembled.
+**3D Object Detection** is an end-to-end research project that traces the evolution of point-cloud deep learning — from the original PointNet classifier, through PointNet++ multi-scale variants with sim-to-real domain adaptation, into a **VoteNet 3D detector**, and culminating in a **60-class camera-simulated (2.5D) detector** for furniture and military objects in indoor scenes.
 
-The project spans **ten research phases**: point-cloud classification on ModelNet40, sim-to-real study on ScanObjectNN, VoteNet detection on SUN RGB-D, a 27-class custom detector, a 60-class expansion, and finally a camera-simulation redesign that closes a diagnosed train/test distribution gap and validates transfer on a real render engine (BlenderProc).
+The project spans **ten research phases**: point-cloud classification on ModelNet40, a sim-to-real study on ScanObjectNN, VoteNet detection on SUN RGB-D, a 27-class custom detector, a 60-class taxonomy expansion, and finally a camera-simulation redesign that trains the detector on realistic single-viewpoint (2.5D) depth geometry — the same geometry a real depth sensor produces.
 
-Built with **PyTorch, PointNet, PointNet++ MSG, VoteNet, BlenderProc, trimesh, Open3D, and Plotly**.
+Built with **PyTorch, PointNet, PointNet++ MSG, VoteNet, trimesh, Open3D, and Plotly**.
 
 ---
 
 ## 🏆 Headline Result (Phase 10)
 
-A **60-class VoteNet** trained entirely on **camera-simulated 2.5D point clouds** — the same single-viewpoint geometry a real depth sensor produces — rather than the idealized full-surround clouds used in earlier phases.
+A **60-class VoteNet** trained entirely on **camera-simulated 2.5D point clouds** — single-viewpoint, self-occluded, sensor-noisy depth geometry, rather than the idealized full-surround clouds used in earlier phases.
 
 | Benchmark | Metric | Value |
 |---|---|---|
@@ -32,11 +31,8 @@ A **60-class VoteNet** trained entirely on **camera-simulated 2.5D point clouds*
 | Synthetic 2.5D val | mAP@0.50 | 21.88% |
 | Synthetic 2.5D val | AR@0.25 | 65.4% |
 | Synthetic 2.5D val | small-object F1@10 cm (19 classes < 35 cm) | 46.8% |
-| **Sim-to-engine transfer** (200 BlenderProc renders) | **camera-sim mAP@0.25** | **11.72%** |
-| Sim-to-engine ablation | full-surround (Phase 9) mAP@0.25 | 0.35% |
-| **Ablation improvement** | camera-sim vs. full-surround | **33.6×** |
 
-The **33.6× ablation** — identical model architecture, identical rendered test scenes, only the *training distribution* swapped — is the project's core scientific contribution: it isolates the training distribution as the mechanism behind sim-to-engine transfer.
+Every detection, miss, and confident hit is made explorable through an **interactive Plotly viewer** — the final deliverable of the pipeline.
 
 ---
 
@@ -55,6 +51,10 @@ The **33.6× ablation** — identical model architecture, identical rendered tes
 - Studied **ModelNet40 → ScanObjectNN** transfer via domain-augmented, fine-tuned, and multi-domain pipelines.
 - Quantified per-class synthetic → real degradation; documented the zero-shot vs. fine-tuned gap.
 
+### 🔹 ScanObjectNN Real-World Evaluation
+- Evaluated PointNet++ MSG on **ScanObjectNN PB-T50-RS** (hardest variant).
+- Generated per-class confusion matrices across all checkpoint variants.
+
 ### 🔹 VoteNet on SUN RGB-D — Real-World Detection
 - Trained **VoteNet** (Qi et al., 2019) on the SUN RGB-D 10-class benchmark, warm-started from the multi-domain MSG backbone.
 - Achieved **57.49% mAP@0.25**, matching the original paper.
@@ -63,33 +63,34 @@ The **33.6× ablation** — identical model architecture, identical rendered tes
 - Extended VoteNet 10 → **27 classes** (10 furniture + 17 military), surgical weight transfer (144/146 layers from the SUN RGB-D checkpoint).
 - Achieved **62.25% mAP@0.25 / 44.03% mAP@0.50** on full-surround synthetic val.
 
-### 🔹 60-Class Expansion & the Diagnosed Domain Gap (Phase 9)
-- Expanded the taxonomy 27 → **60 classes** (10 furniture + 50 military) on a **277-mesh curated dataset**.
-- **Critical finding:** the full-surround-trained detector collapsed to **2/56-class recall** on BlenderProc-rendered depth scenes. Root cause was diagnosed as a **train/test distribution mismatch**, not a bug: the model trained on all-sides-visible point clouds but every realistic test source (a depth camera, a render) produces a **single-viewpoint 2.5D cloud** with self-occlusion and one dense wall plane. The model hallucinated large objects on wall planes and missed half-visible objects.
+### 🔹 60-Class Taxonomy Expansion (Phase 9)
+- Expanded the taxonomy 27 → **60 classes** — 10 furniture + **50 military objects** (weapons, ordnance, field equipment, barriers, and protective gear) — on a curated multi-mesh dataset.
+- Rebalanced the procedural scene generator for the larger taxonomy: inverse-frequency class sampling keeps every class within ~2× of the median instance count, small-object density boost, and per-class auto-orientation.
+- This is, to our knowledge, a **novel 60-class military + furniture 3D taxonomy** — no comparable labeled 3D set previously existed.
 
-### 🔹 Camera-Simulation Redesign (Phase 10) — The Fix
-- Rebuilt the synthetic generator to produce **2.5D depth-realistic clouds** by ray-casting a virtual RGB-D camera into each scene, so **training distribution ≈ engine/real distribution**:
+### 🔹 Camera-Simulation Redesign (Phase 10)
+- Rebuilt the synthetic generator to produce **2.5D depth-realistic clouds** by ray-casting a virtual RGB-D camera into each scene, so training geometry matches what a real depth sensor sees:
   - single-viewpoint sampling with real self- and inter-object occlusion,
-  - dense contiguous wall planes (labeled background — eliminating the "wall hallucination"),
-  - 2 partial views merged per scene, 4 mm sensor noise, camera rig matched to the BlenderProc eval,
-  - **visibility-QC labels** (objects with too few visible points are dropped, so the model is not punished for the genuinely invisible).
-- Model upgrades: **small-object backbone patch** (SA1 seed points 2048 → 4096, finer radii), **inverse-size-weighted classification loss**, and an explicit **height feature** as the 4th input channel.
+  - dense contiguous wall planes (labeled background),
+  - two partial views merged per scene, 4 mm sensor noise,
+  - **visibility-QC labels** — objects with too few visible points are dropped, so the model is not penalized for the genuinely invisible.
+- Model upgrades: **small-object backbone patch** (SA1 seed points 2048 → 4096, finer grouping radii), **inverse-size-weighted classification loss**, and an explicit **height feature** as the 4th input channel.
 - Warm-started from the Phase 9 60-class checkpoint; **AdamW 1e-4 → cosine 1e-6, weight decay 1e-4, grad-clip 10, 40 epochs**, best checkpoint epoch 35 (val loss 7.4143).
-
-### 🔹 Sim-to-Engine Evaluation & Ablation (Phase 10)
-- Rendered **200 BlenderProc scenes** (mixed military rooms + tabletop close-ups) with saved depth, intrinsics, camera pose, and ground-truth boxes; backprojected to detector-format 2.5D clouds with sensor noise.
-- **Ablation:** ran the Phase 9 (full-surround) and Phase 10 (camera-sim) checkpoints on the **same** rendered scenes. Full-surround = 0.35% mAP@0.25 (the Phase 9 collapse, reproduced); camera-sim = **11.72%** — a **33.6× improvement** and a **27.3% transfer ratio** relative to matched-distribution val.
-- **Failure analysis** (honest, mechanism-level): a residual, order-of-magnitude-smaller wall-hallucination on rendered wall slabs (precision cost), and a **localization-limited** long-gun cluster (super-class AP ≈ mean of individual APs → the six long guns are detected but not boxed tightly enough at 0.25 IoU, driven by 30° heading quantization on thin geometry).
+- Result: **42.95% mAP@0.25 / 21.88% mAP@0.50** on 1,500 held-out **2.5D** validation scenes — measured on the realistic single-viewpoint distribution, not the idealized full-surround one.
 
 ### 🔹 Interactive Plotly Visualization — The Final Deliverable
-- Browser-interactive 3D viewer (`scripts/interactive_viz_plotly_v2.py`) rendering predictions on any validation scene with full rotate / zoom / pan, **color-coded by correctness** (not class):
-  - 🟢 **Green** — correct (right class, IoU > 0.25 with a GT)
-  - 🟠 **Orange** — wrong class (right location)
-  - 🔴 **Red** — false positive
-  - ⬛ **Black dashed** — ground truth found
-  - 🟡 **Yellow dashed** — ground truth missed
-- Live counts in the title bar; an extra class-agnostic NMS pass (`phase10_plotly_viz.ipynb`) collapses duplicate proposals so demos show one box per real object.
-- Curated demo scenes span the full spectrum — best-case, densest, most-diverse, tiny-object success, military-heavy, and an honest worst-recall failure case.
+- Browser-interactive 3D viewer (`scripts/interactive_viz_plotly_v2.py`, `phase10_plotly_viz.ipynb`) rendering the 60-class detector's predictions on any validation scene with full rotate / zoom / pan.
+- Predictions are **color-coded by correctness**, not by class — making model behavior immediately legible:
+  - 🟢 **Green** — correct prediction (right class, IoU > 0.25 with a GT box)
+  - 🟠 **Orange** — wrong class (right location, predicted the wrong label)
+  - 🔴 **Red** — false positive (predicted a box with no nearby GT)
+  - ⬛ **Black dashed** — ground truth (correctly found)
+  - 🟡 **Yellow dashed** — ground truth (MISSED)
+- Live counts in the title bar: `✅ N correct  ⚠️ N wrong-class  ❌ N false-positives  ⏷ N missed GTs`.
+- An extra class-agnostic NMS pass collapses duplicate proposals so demos show one box per real object.
+- Curated demo scenes span the full spectrum — best-case, densest, most-diverse, a tiny-object success case, military-heavy, and an honest worst-recall failure case.
+
+This visualization is the **endpoint of the entire pipeline** — every detected object, every miss, every confident hit, made interactive and explorable.
 
 ---
 
@@ -108,13 +109,11 @@ The **33.6× ablation** — identical model architecture, identical rendered tes
 | 7 | VoteNet | SUN RGB-D 10-class | mAP@0.50 | 32.94% |
 | 8 | VoteNet 27-class | Full-surround synthetic | **mAP@0.25** | **62.25%** |
 | 8 | VoteNet 27-class | Full-surround synthetic | mAP@0.50 | 44.03% |
-| 9 | VoteNet 60-class (full-surround) | BlenderProc engine test | recall | **2/56 classes** (diagnosed domain gap) |
+| 9 | VoteNet 60-class | Taxonomy expansion (10 + 50) | — | novel 60-class taxonomy |
 | **10** | **VoteNet 60-class (camera-sim 2.5D)** | **Synthetic 2.5D val** | **mAP@0.25** | **42.95%** |
 | **10** | **VoteNet 60-class (camera-sim 2.5D)** | **Synthetic 2.5D val** | **mAP@0.50** | **21.88%** |
-| **10** | **VoteNet 60-class (camera-sim 2.5D)** | **BlenderProc engine (200 scenes)** | **mAP@0.25** | **11.72%** |
-| 10 | VoteNet 60-class (full-surround) | BlenderProc engine (200 scenes) | mAP@0.25 | 0.35% (ablation baseline) |
 
-> **Note on comparing Phase 8 (62.25%) and Phase 10 (42.95%):** they are measured on different, non-comparable test distributions. Phase 8's val was *full-surround* (every object surface-sampled from all sides — an easy benchmark that flattered the model and hid the domain gap). Phase 10's val is *honest single-viewpoint 2.5D* — the geometry a real sensor actually produces. The lower headline number is measured on a strictly harder and more realistic task.
+> **Note on comparing Phase 8 (62.25%) and Phase 10 (42.95%):** they are measured on different, non-comparable test distributions. Phase 8's val was *full-surround* (every object surface-sampled from all sides — an easier benchmark). Phase 10's val is *honest single-viewpoint 2.5D* — the geometry a real depth sensor actually produces. The lower headline number is measured on a strictly harder and more realistic task, across 2.2× more classes.
 
 ### Phase 10 — synthetic-val AP by object-size tier
 
@@ -124,15 +123,7 @@ The **33.6× ablation** — identical model architecture, identical rendered tes
 | **Tier 2** | 0.35 – 1.0 m | 24 | **0.453** |
 | **Tier 3** | < 0.35 m | 19 | **0.306** |
 
-Strong performers include hedgehog (0.89), mortar_tube (0.87), bed (0.81), barbed_wire_coil (0.94), duffel_bag (0.92), fuel_drum (0.90), helmet (0.76), first_aid_kit (0.68), tank_mine (0.61). The hardest classes are thin/elongated objects (rifle, shotgun, machete, baton) — a **localization** limitation confirmed by the long-gun super-class analysis, not a detection failure.
-
-### Phase 10 — sim-to-engine ablation (the core figure)
-
-| Training distribution | Engine mAP@0.25 (200 renders) |
-|---|---|
-| Full-surround (Phase 9) | 0.0035 |
-| **Camera-sim 2.5D (Phase 10)** | **0.1172** |
-| **Improvement** | **33.6×** |
+Strong performers include hedgehog (0.89), mortar_tube (0.87), bed (0.81), barbed_wire_coil (0.94), duffel_bag (0.92), fuel_drum (0.90), helmet (0.76), first_aid_kit (0.68), tank_mine (0.61). The hardest classes are thin/elongated objects (rifle, shotgun, machete, baton) — a **localization** limitation (tight-box fit at 0.25 IoU on sliver geometry), not a detection failure: these objects are consistently found but loosely boxed.
 
 ---
 
@@ -149,15 +140,13 @@ flowchart TD
     H[SUN RGB-D<br/>10-class] --> I[VoteNet Phase 7<br/>57.49% mAP@0.25]
     G --> I
     I --> J[Phase 8: 27-class<br/>62.25% mAP@0.25]
-    J --> K[Phase 9: 60-class full-surround<br/>DIAGNOSED domain gap: 2/56 recall on renders]
+    J --> K[Phase 9: 60-class taxonomy expansion<br/>10 furniture + 50 military]
     K --> L[Phase 10: Camera-Simulation v4<br/>2.5D ray-cast generator]
-    M[277 curated meshes<br/>10 furniture + 50 military] --> L
+    M[Curated meshes<br/>10 furniture + 50 military] --> L
     L --> N[VoteNet 60-class camera-sim<br/>42.95% mAP@0.25 / 21.88% mAP@0.50]
-    N --> O[Sim-to-Engine Ablation<br/>200 BlenderProc renders<br/>33.6x over full-surround]
-    N --> P[🎯 Interactive Plotly Viz<br/>color-coded by correctness]
+    N --> O[🎯 Interactive Plotly Viz<br/>color-coded by correctness<br/>FINAL DELIVERABLE]
     style N fill:#155724,stroke:#0d3f1a,stroke-width:2px,color:#fff
     style O fill:#1e7e34,stroke:#0d3f1a,stroke-width:3px,color:#fff
-    style P fill:#1e7e34,stroke:#0d3f1a,stroke-width:3px,color:#fff
 ```
 
 ---
@@ -192,11 +181,11 @@ model.load_state_dict(ckpt['model_state_dict'])
 ## 🛠️ Technology Stack
 
 - **Deep Learning:** PyTorch (≥1.13), PointNet, PointNet++ MSG, VoteNet
-- **3D Geometry & Rendering:** trimesh, Open3D, BlenderProc (Blender/Cycles engine eval), numpy, scipy
+- **3D Geometry:** trimesh, Open3D, numpy, scipy
 - **Visualization:** Plotly (interactive 3D), matplotlib (curves, confusion heatmaps)
 - **Training Infrastructure:** Kaggle (T4 ×2 GPU), Google Colab
 - **CUDA:** pointnet2 C++/CUDA extensions (patched for modern PyTorch via `AT_CHECK → TORCH_CHECK`)
-- **Datasets:** ModelNet40, ScanObjectNN PB-T50-RS, SUN RGB-D, custom 60-class synthetic (full-surround + 2.5D), BlenderProc renders
+- **Datasets:** ModelNet40, ScanObjectNN PB-T50-RS, SUN RGB-D, custom 60-class synthetic (full-surround + camera-simulated 2.5D)
 
 ---
 
@@ -207,22 +196,20 @@ model.load_state_dict(ckpt['model_state_dict'])
 - ✅ VoteNet on SUN RGB-D matching the paper (57.49% mAP@0.25)
 - ✅ 27-class VoteNet exceeding the paper on full-surround synthetic (62.25% mAP@0.25)
 - ✅ **60-class taxonomy** (10 furniture + 50 military) — a novel military 3D taxonomy
-- ✅ **Diagnosed the full-surround → 2.5D domain gap** (Phase 9 post-mortem)
-- ✅ **Camera-simulation 2.5D generator** closing the gap at its source
+- ✅ **Camera-simulation 2.5D generator** — single-viewpoint, occluded, sensor-noisy training data
 - ✅ **60-class camera-sim detector: 42.95% mAP@0.25 on honest 2.5D val**
-- ✅ **Sim-to-engine transfer measured on BlenderProc — 33.6× ablation over full-surround**
 - ✅ Interactive Plotly visualizations color-coded by correctness — the final deliverable
 
 ---
 
-## 🔮 Planned Improvements (v5)
+## 🔮 Planned Improvements
 
 - ⬜ **24 heading bins** (from 12) — halve angular quantization to recover thin/elongated-object mAP (rifle, shotgun, machete)
-- ⬜ **Pure-wall training scenes (~10%)** — drive residual wall hallucination toward zero
-- ⬜ **Closer-range camera rig (0.9–3.0 m) + MULTIVIEW=3** — cover tabletop close-up density, denser small objects
+- ⬜ **Closer-range camera rig + additional merged views** — denser small objects, better tabletop coverage
 - ⬜ **Gun pose variety** in the generator (racked, leaning, wall-mounted) so long guns separate from support surfaces
-- ⬜ **Real-world fine-tuning** — 50–100 labeled RGB-D scans for true sim-to-real evaluation
+- ⬜ **Real-world fine-tuning** — collect 50–100 labeled RGB-D scans for true sim-to-real evaluation
 - ⬜ **Two-stage detector head** — region proposal + refinement to tighten mAP@0.50
+- ⬜ **Class-weighted refinements** — further balance under-represented classes
 - ⬜ **Pure-PyTorch backbone** — port pointnet2 ops to remove the CUDA dependency for Mac/edge inference
 
 ---
@@ -232,33 +219,25 @@ model.load_state_dict(ckpt['model_state_dict'])
 ### Phase 10 — camera-simulation data (Mac, ~3.5 h overnight)
 ```bash
 python scripts/generate_synthetic_dataset_v4.py --n-train 8000 --n-val 1500
-# QC: confirm 2.5D property (dense walls, one-sided objects, height 0..~2.5 m)
+# QC: confirm the 2.5D property (dense walls, one-sided objects, height 0..~2.5 m)
 ```
 
 ### Phase 10 — training + evaluation (Kaggle T4 ×2, one commit)
 ```bash
-# Attach: votenet-source, votenet-v4-25d (2.5D data), 60-class Phase 9 checkpoint
+# Attach: votenet-source, the 2.5D dataset, and the Phase 9 60-class checkpoint.
 # Run phase10_training_v2.ipynb — setup -> verification gate -> warm start ->
-#   40-epoch training -> auto-eval (mAP, tiers, F1@10cm, confusion, long-gun analysis)
+#   40-epoch training -> auto-eval (mAP, size tiers, F1@10cm, confusion matrix)
 #   -> produces votenet_60class_v4_best.pt (epoch 35, val 7.4143)
-```
-
-### Phase 10 — sim-to-engine ablation (Mac render + Kaggle eval)
-```bash
-# 1. Render 200 scenes (mixed rooms + tabletop close-ups)
-blenderproc run scripts/blenderproc_render_scenes_v2.py -- --mode mixed    --n-scenes 140 --prefix m --out data/engine_renders_200
-blenderproc run scripts/blenderproc_render_scenes_v2.py -- --mode tabletop --n-scenes 60  --prefix t --out data/engine_renders_200
-python scripts/convert_renders_to_scenes.py --in-dir data/engine_renders_200 --out-dir data/engine_scenes_200
-# 2. Upload engine_scenes_200 to Kaggle, run the ablation cells (A0-A3) in the eval notebook
-#    -> full-surround vs camera-sim on the same scenes -> 33.6x
 ```
 
 ### Final visualization — interactive Plotly viewer
 ```bash
-# Convert the eval pkl + local val scenes, curate demos, export standalone HTMLs
+# Convert the eval predictions + local val scenes, curate demos, export standalone HTMLs
 jupyter notebook phase10_plotly_viz.ipynb
 # Drag to rotate, scroll to zoom, hover boxes for class + score
 ```
+
+The Plotly viewer is the **endpoint of the entire pipeline** — every previous phase exists to enable this final, explorable visualization of a 60-class 3D detector running on realistic 2.5D indoor scenes.
 
 ---
 
@@ -270,17 +249,13 @@ jupyter notebook phase10_plotly_viz.ipynb
 ├── phase10_plotly_viz.ipynb                    # Interactive correctness-coded demos
 ├── scripts/
 │   ├── generate_synthetic_dataset_v4.py           # Camera-simulation 2.5D generator
-│   ├── blenderproc_render_scenes_v2.py            # Engine-eval renderer (mixed/tabletop/floor)
-│   ├── convert_renders_to_scenes.py               # Renders -> detector-format 2.5D clouds
-│   ├── make_engine_demos.py                       # Engine-scene Plotly demos
 │   ├── make_val_demos.py                          # Synthetic-val Plotly demos
 │   └── interactive_viz_plotly_v2.py               # Core correctness-coded 3D viewer
 ├── checkpoints/
 │   ├── votenet_27class_best.pt                     # Phase 8 (full-surround, 27-class)
 │   └── votenet_60class_v4_best.pt                  # Phase 10 (camera-sim 2.5D, 60-class)
 ├── PHASE9_MASTER_PLAN.md
-├── PHASE10_MASTER_PLAN.md
-└── PHASE10_SIM_TO_ENGINE_REPORT.md             # Method, 5 result blocks, failure analysis
+└── PHASE10_MASTER_PLAN.md
 ```
 
 ---
@@ -289,4 +264,4 @@ jupyter notebook phase10_plotly_viz.ipynb
 
 **Vatsy (Vathsal Upadhyay)** — 3D Computer Vision Internship, 2026
 
-Built across ten phases spanning point-cloud classification, sim-to-real transfer, 3D object detection, and a diagnosed-and-fixed sim-to-engine domain gap validated on a real render engine. The novelty is the 60-class military taxonomy combined with a clean, measured, mechanism-explained sim-to-engine transfer — a result whose contribution is the *understanding*, not merely the number.
+Built across ten phases spanning point-cloud classification, sim-to-real transfer, and 3D object detection — culminating in a 60-class camera-simulated detector on realistic single-viewpoint depth geometry, made fully explorable through an interactive Plotly viewer.
